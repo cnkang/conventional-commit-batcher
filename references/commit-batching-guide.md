@@ -32,6 +32,23 @@ Common wrong merges to avoid:
 - pure formatting/refactor sweep + behavior change in same touched files
 - dependency/changelog docs update + unrelated feature docs update
 
+## Avoid Over-Splitting
+
+Do not split by file count or directory shape alone.
+
+Keep changes in one commit when all are true:
+
+- same primary intent
+- same acceptance criteria
+- same rollback decision
+- same release timing
+
+Common over-splitting to avoid:
+
+- splitting one feature across multiple commits with no independent value
+- splitting code and directly coupled tests when they should ship together
+- splitting one cohesive docs update into many file-by-file commits
+
 ## Recommended Commit Order
 
 1. Mechanical prep (`refactor`, `chore`, or `style`)

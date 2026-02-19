@@ -86,6 +86,8 @@ Hard gates:
   (for example runtime tests vs docs/lint/hook rules), separate commits.
 - Split by release timing: if one part can ship now and another should wait,
   separate commits.
+- Do not over-split: if intent, acceptance criteria, rollback need, and release
+  timing are the same, keep changes in one commit.
 - Separate formatting-only edits from behavior changes.
 - Separate refactor from fix unless inseparable.
 - Keep tests with the behavior they validate.
@@ -101,6 +103,7 @@ Before finalizing each batch, verify all answers are "yes":
 - Same release timing?
 
 If any answer is "no", split into different commits.
+If all answers are "yes", prefer one cohesive commit.
 
 Reject:
 
@@ -110,6 +113,7 @@ Reject:
 - mixing user-facing docs with agent/skill contract updates in one docs commit
 - mixing mechanical formatting with behavioral code changes in one code commit
 - mixing CI/release pipeline edits with product/runtime behavior changes
+- splitting one cohesive logical change into many tiny file-based commits
 - commit headers that do not match actual changes
 
 ## Stage and Commit Each Batch
