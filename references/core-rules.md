@@ -53,6 +53,58 @@ Classify each changed file by intent:
 - tooling or CI (`build`, `ci`, `chore`)
 - formatting-only (`style`)
 
+## Sensitive Data Gate (Required)
+
+Before every commit attempt, inspect staged file names and staged diff for
+sensitive data risk.
+
+High-risk file/path indicators (examples):
+
+- `.env`, `.env.*`
+- `*.pem`, `*.key`, `*.p12`, `*.jks`
+- `id_rsa`, `id_dsa`, `id_ed25519`
+- files/paths containing `secret`, `secrets`, `credential`, `credentials`,
+  `token`, `password`
+
+High-risk content indicators (examples):
+
+- `BEGIN ... PRIVATE KEY`
+- `api_key`, `access_token`, `secret_key`, `client_secret`
+- hardcoded password-like values in config or source
+
+Hard requirement:
+
+- If any high-risk indicator appears in a planned or staged batch, stop and ask
+  user for explicit confirmation before commit.
+- Do not proceed with `git commit` until user confirms those files/hunks are
+  intentional.
+- If user says accidental inclusion, unstage/remove the risky parts and update
+  the plan before continuing.
+
+## Ignore Rules Gate (Required)
+
+Before staging and before each commit, verify that local-only or generated files
+are not accidentally included.
+
+Required checks:
+
+```bash
+git status --short --untracked-files=all
+git ls-files --others --exclude-standard
+```
+
+Hard requirement:
+
+- Cross-check staged files against `.gitignore` intent (local configs, caches,
+  env files, temp/build artifacts).
+- If a file looks local-only, generated, or environment-specific, stop and ask
+  user to confirm whether it should be committed.
+- If it should not be committed, remove it from staging immediately.
+- If ignore rules are missing, update `.gitignore` (usually as a separate
+  `chore` commit).
+- If a tracked file should become ignored, untrack it first (for example
+  `git rm --cached <path>`) and then update `.gitignore`.
+
 ## Commit Plan Output Contract (Required)
 
 Output this exact structure before any staging/commit:
@@ -79,6 +131,10 @@ Hard gates:
 - If user requests plan changes, regenerate the full plan and wait for
   confirmation again.
 - If intent boundaries are uncertain, ask for clarification before execution.
+- If sensitive-file or secret-risk indicators exist, require explicit user
+  confirmation for those files/hunks before commit.
+- If local-only/generated files appear in staged candidates, require explicit
+  user confirmation before commit.
 
 ## Batching Rules
 
@@ -139,6 +195,42 @@ Verify staged content:
 ```bash
 git diff --cached --stat
 git diff --cached
+```
+
+Run sensitive data checks on staged changes:
+
+```bash
+git diff --cached --name-only
+git diff --cached
+```
+
+If risk indicators are detected, pause and ask user explicitly:
+
+```text
+[Sensitive Data Confirmation Required]
+Potentially sensitive files/hunks detected in this batch:
+- <path-or-hunk-summary>
+
+Please confirm these are intentional and safe to commit.
+Reply with explicit confirmation before I continue.
+```
+
+Run ignore/local-artifact checks:
+
+```bash
+git status --short --untracked-files=all
+git diff --cached --name-only
+```
+
+If local-only or generated files are detected, pause and ask user explicitly:
+
+```text
+[Ignore Rule Confirmation Required]
+Potentially local-only/generated files detected:
+- <path>
+
+These may belong in `.gitignore` instead of git history.
+Please confirm whether to commit or exclude them.
 ```
 
 Validate message:

@@ -48,6 +48,10 @@ Commit command:
 
 - Always load `references/core-rules.md` first.
 - Treat `references/core-rules.md` as the single source of truth.
+- Run the sensitive-data gate before every commit and require explicit user
+  confirmation if risky files/hunks are detected.
+- Run the `.gitignore`/local-artifact gate before every commit and require
+  explicit user confirmation if suspicious files are present.
 - Never skip commit-time checks with `--no-verify`.
 - If check/hook fails, stop and report concise diagnostics.
 

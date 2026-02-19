@@ -49,6 +49,56 @@ Common over-splitting to avoid:
 - splitting code and directly coupled tests when they should ship together
 - splitting one cohesive docs update into many file-by-file commits
 
+## Sensitive Data Pre-Commit Check
+
+Before each commit, run a quick risk scan on staged changes.
+
+Suggested checks:
+
+```bash
+git diff --cached --name-only | rg -i '(^|/)(\\.env(\\..*)?|id_rsa|id_dsa|id_ed25519)|\\.(pem|key|p12|jks)$|secret|credential|token|password'
+git diff --cached | rg -i 'BEGIN .*PRIVATE KEY|api[_-]?key|access[_-]?token|secret[_-]?key|client[_-]?secret|password\\s*[:=]'
+```
+
+If any match appears:
+
+- stop commit execution
+- show matched file/hunk context briefly
+- ask user for explicit confirmation that inclusion is intentional
+- continue only after explicit confirmation
+
+If user says it was accidental:
+
+- remove/unstage sensitive files or hunks
+- update Commit Plan and staging commands
+- re-run the checks before commit
+
+## `.gitignore` and Local Artifact Check
+
+Before committing, verify local-only/generated files are not accidentally staged.
+
+Suggested checks:
+
+```bash
+git status --short --untracked-files=all
+git ls-files --others --exclude-standard
+git diff --cached --name-only
+```
+
+Watch for typical accidental inclusions:
+
+- local env/config files (`.env*`, local settings JSON)
+- cache/state folders (`.cache`, tool state dirs, temp output)
+- generated binaries/artifacts/logs
+- machine-specific credentials or tokens
+
+If detected:
+
+- pause and ask user whether inclusion is intentional
+- if not intentional, unstage/remove those files from commit
+- if ignore coverage is missing, add rule in `.gitignore`
+- prefer separate `chore` commit for `.gitignore` maintenance
+
 ## Recommended Commit Order
 
 1. Mechanical prep (`refactor`, `chore`, or `style`)
