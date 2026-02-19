@@ -17,25 +17,30 @@ DEFAULTS = dict(
 
 # ---- Valid messages ----
 
-@pytest.mark.parametrize("msg", [
-    "feat(auth): add refresh token rotation",
-    "fix(api): handle empty pagination cursor",
-    "docs: update readme",
-    "refactor(core): split parser into modules",
-    "chore: bump dependencies",
-    "style: normalize whitespace",
-    "perf(db): add query index hint",
-    "test(cache): add eviction edge cases",
-    "build(deps): add zod",
-    "ci: add lint step",
-    "revert: undo last migration",
-])
+
+@pytest.mark.parametrize(
+    "msg",
+    [
+        "feat(auth): add refresh token rotation",
+        "fix(api): handle empty pagination cursor",
+        "docs: update readme",
+        "refactor(core): split parser into modules",
+        "chore: bump dependencies",
+        "style: normalize whitespace",
+        "perf(db): add query index hint",
+        "test(cache): add eviction edge cases",
+        "build(deps): add zod",
+        "ci: add lint step",
+        "revert: undo last migration",
+    ],
+)
 def test_valid_messages(msg):
     errors, _ = validate(msg, **DEFAULTS)
     assert errors == []
 
 
 # ---- Breaking changes ----
+
 
 def test_breaking_bang_valid():
     errors, _ = validate("feat(api)!: remove v1 endpoint", **DEFAULTS)
@@ -61,6 +66,7 @@ def test_non_breaking_word_is_valid():
 
 # ---- Header format errors ----
 
+
 def test_invalid_type():
     errors, _ = validate("foo: do something", **DEFAULTS)
     assert errors != []
@@ -78,21 +84,26 @@ def test_trailing_period():
 
 def test_header_too_long():
     long_subject = "a" * 90
-    errors, _ = validate(f"feat: {long_subject}", max_header_length=50, **{
-        k: v for k, v in DEFAULTS.items() if k != "max_header_length"
-    })
+    errors, _ = validate(
+        f"feat: {long_subject}",
+        max_header_length=50,
+        **{k: v for k, v in DEFAULTS.items() if k != "max_header_length"},
+    )
     assert any("header length" in e.lower() for e in errors)
 
 
 def test_subject_too_long():
     long_subject = "a" * 80
-    errors, _ = validate(f"feat: {long_subject}", max_subject_length=30, **{
-        k: v for k, v in DEFAULTS.items() if k != "max_subject_length"
-    })
+    errors, _ = validate(
+        f"feat: {long_subject}",
+        max_subject_length=30,
+        **{k: v for k, v in DEFAULTS.items() if k != "max_subject_length"},
+    )
     assert any("subject length" in e.lower() for e in errors)
 
 
 # ---- Body / footer structure ----
+
 
 def test_missing_blank_line_after_header():
     msg = "feat: add feature\nsome body without blank line"
@@ -126,6 +137,7 @@ def test_valid_footer():
 
 # ---- Style warnings ----
 
+
 def test_uppercase_subject_warns():
     _, warnings = validate("feat: Add feature", **DEFAULTS)
     assert any("lowercase" in w.lower() for w in warnings)
@@ -137,20 +149,29 @@ def test_non_imperative_warns():
 
 
 def test_uppercase_subject_error_mode():
-    errors, _ = validate("feat: Add feature", **{
-        **DEFAULTS, "subject_lowercase_mode": "error",
-    })
+    errors, _ = validate(
+        "feat: Add feature",
+        **{
+            **DEFAULTS,
+            "subject_lowercase_mode": "error",
+        },
+    )
     assert any("lowercase" in e.lower() for e in errors)
 
 
 def test_non_imperative_error_mode():
-    errors, _ = validate("feat: added new feature", **{
-        **DEFAULTS, "imperative_mode": "error",
-    })
+    errors, _ = validate(
+        "feat: added new feature",
+        **{
+            **DEFAULTS,
+            "imperative_mode": "error",
+        },
+    )
     assert any("imperative" in e.lower() for e in errors)
 
 
 # ---- Scope rules ----
+
 
 def test_underscore_scope_allowed_by_default():
     errors, _ = validate("feat(my_scope): add thing", **DEFAULTS)
@@ -158,13 +179,18 @@ def test_underscore_scope_allowed_by_default():
 
 
 def test_underscore_scope_rejected_in_strict():
-    errors, _ = validate("feat(my_scope): add thing", **{
-        **DEFAULTS, "allow_underscore_scope": False,
-    })
+    errors, _ = validate(
+        "feat(my_scope): add thing",
+        **{
+            **DEFAULTS,
+            "allow_underscore_scope": False,
+        },
+    )
     assert errors != []
 
 
 # ---- Edge cases ----
+
 
 def test_empty_message():
     errors, _ = validate("", **DEFAULTS)
@@ -183,9 +209,13 @@ def test_leading_trailing_spaces_in_subject():
 
 def test_header_leading_space_is_invalid():
     errors, _ = validate(" feat: add feature", **DEFAULTS)
-    assert any("header must not contain leading/trailing spaces" in e.lower() for e in errors)
+    assert any(
+        "header must not contain leading/trailing spaces" in e.lower() for e in errors
+    )
 
 
 def test_header_trailing_space_is_invalid():
     errors, _ = validate("feat: add feature ", **DEFAULTS)
-    assert any("header must not contain leading/trailing spaces" in e.lower() for e in errors)
+    assert any(
+        "header must not contain leading/trailing spaces" in e.lower() for e in errors
+    )

@@ -243,7 +243,10 @@ def validate(
                 if line.strip():
                     continue
                 next_index = index + 1
-                while next_index < len(content_lines) and not content_lines[next_index].strip():
+                while (
+                    next_index < len(content_lines)
+                    and not content_lines[next_index].strip()
+                ):
                     next_index += 1
                 if next_index >= len(content_lines):
                     break
@@ -301,7 +304,9 @@ def main() -> int:
         return 1
 
     if warnings:
-        print_items("[WARN] Conventional Commit is valid with style suggestions:", warnings)
+        print_items(
+            "[WARN] Conventional Commit is valid with style suggestions:", warnings
+        )
         return 0
 
     print("[OK] Conventional Commit message is valid.")
