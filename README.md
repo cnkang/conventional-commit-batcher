@@ -7,6 +7,8 @@
 
 [中文文档](README.zh-CN.md)
 
+![conventional-commit-batcher social preview](assets/social-preview.png)
+
 Turn mixed local changes into clean, reviewable Conventional Commit batches.
 
 ## Why Use This Skill
@@ -41,7 +43,7 @@ I have mixed changes in my working tree.
 4) After I approve, stage and commit each batch with Conventional Commit messages.
 ```
 
-### B) Use commit-msg hook only (no agent required)
+### B) Use git hooks (no agent required)
 
 ```bash
 cat > .git/hooks/commit-msg <<'HOOK'
@@ -63,6 +65,15 @@ python3 "$SCRIPT_PATH" \
 HOOK
 
 chmod +x .git/hooks/commit-msg
+
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 scripts/precommit_safety_gate.py
+HOOK
+
+chmod +x .git/hooks/pre-commit
 ```
 
 ## What You Should Expect
@@ -92,6 +103,32 @@ The skill includes pre-commit guards for common beginner mistakes:
 - unexpected binary/large artifacts
 - empty staged commit attempts
 
+These checks are executed by `scripts/precommit_safety_gate.py` before each
+commit attempt:
+
+```bash
+python3 scripts/precommit_safety_gate.py
+```
+
+- exit `0`: pass
+- exit `2`: explicit user confirmation required (rerun with matching `--allow-*` flags after confirmation)
+- exit `3`: hard block (must be fixed before commit)
+
+If Python is unavailable, the agent must run the equivalent `git diff`/`git status`
+manual checks from [`references/core-rules.md`](references/core-rules.md) and enforce
+the same decisions.
+
+## Why Scripts + No-Python Fallback
+
+- No hard Python dependency: Python script is preferred, not mandatory.
+- Why the script exists: it makes checks programmatic, regression-testable, and
+  reusable in hooks/CI.
+- If Python is not available: agent runs the same gate logic directly with
+  `git` commands from [`references/core-rules.md`](references/core-rules.md),
+  checks every gate one by one, and reports/block decisions in the same way.
+- In both modes, when sensitive indicators are found, output includes triggered
+  file paths, snippet evidence, and a "please review these files" suggestion.
+
 ## When To Use / Skip
 
 Use it when:
@@ -107,32 +144,34 @@ Skip it when:
 
 ## Quick Start Paths
 
-1. Agent flow: load this skill and follow `references/core-rules.md`.
-2. Validator CLI: `python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`.
-3. Hook flow: use the script above (or `references/commit-msg-hook-example.md`).
+1. Agent flow: load this skill and follow [`references/core-rules.md`](references/core-rules.md).
+2. Validator CLI (commit header): `python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`.
+3. Safety gate CLI (6 pre-commit checks): `python3 scripts/precommit_safety_gate.py`.
+4. No-Python fallback: run manual gate commands in [`references/core-rules.md`](references/core-rules.md).
+5. Hook flow: use the script above (or [`references/commit-msg-hook-example.md`](references/commit-msg-hook-example.md)).
 
 ## Agent-Specific Setup
 
 Use these docs only for tool-specific setup details:
 
-- Codex: `references/codex-setup.md`
-- Claude Code: `references/claude-setup.md`
-- Kiro CLI: `references/kiro-setup.md`
-- Kimi CLI: `references/kimi-setup.md`
-- Qwen Code: `references/qwen-setup.md`
-- Gemini CLI: `references/gemini-setup.md`
+- Codex: [`references/codex-setup.md`](references/codex-setup.md)
+- Claude Code: [`references/claude-setup.md`](references/claude-setup.md)
+- Kiro CLI: [`references/kiro-setup.md`](references/kiro-setup.md)
+- Kimi CLI: [`references/kimi-setup.md`](references/kimi-setup.md)
+- Qwen Code: [`references/qwen-setup.md`](references/qwen-setup.md)
+- Gemini CLI: [`references/gemini-setup.md`](references/gemini-setup.md)
 
 ## Core Rule Source
 
 All entrypoints delegate to one canonical rule file:
 
-- `references/core-rules.md`
+- [`references/core-rules.md`](references/core-rules.md)
 
 ## Community and Feedback
 
-- Bug reports and feature requests: GitHub Issues (`/.github/ISSUE_TEMPLATE/`)
+- Bug reports and feature requests: GitHub Issues ([`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/))
 - Product discussion and usage ideas: GitHub Discussions
 
 ## License
 
-Apache-2.0 (`LICENSE`)
+[Apache-2.0](LICENSE)

@@ -7,6 +7,8 @@
 
 [English](README.md)
 
+![conventional-commit-batcher 社交预览图](assets/social-preview.png)
+
 把混杂改动整理成清晰、可审查、可回滚的 Conventional Commit 批次。
 
 ## 为什么用这个 Skill
@@ -41,7 +43,7 @@ npx skills list
 4）确认后再逐批次 stage 并用 Conventional Commit 提交。
 ```
 
-### B) 只用 commit-msg hook（不依赖 agent）
+### B) 只用 git hook（不依赖 agent）
 
 ```bash
 cat > .git/hooks/commit-msg <<'HOOK'
@@ -63,6 +65,15 @@ python3 "$SCRIPT_PATH" \
 HOOK
 
 chmod +x .git/hooks/commit-msg
+
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 scripts/precommit_safety_gate.py
+HOOK
+
+chmod +x .git/hooks/pre-commit
 ```
 
 ## 你应该看到什么输出
@@ -92,6 +103,29 @@ Commit command:
 - 二进制或大文件误提交
 - 暂存区为空却执行提交
 
+这些检查由 `scripts/precommit_safety_gate.py` 在每次提交前执行：
+
+```bash
+python3 scripts/precommit_safety_gate.py
+```
+
+- 返回 `0`：通过
+- 返回 `2`：需要用户明确确认后再继续
+- 返回 `3`：硬阻断，必须先修复
+
+如果环境没有 Python，agent 必须按
+[`references/core-rules.md`](references/core-rules.md) 中的手工 `git` 检查命令逐条执行，
+并保持相同的拦截/确认策略。
+
+## 为什么有脚本 + 无 Python 怎么办
+
+- 不必强依赖 Python：Python 脚本是优先方案，不是唯一方案。
+- 脚本的作用：把规则程序化，能做回归测试，并可复用到 hook/CI。
+- 没有 Python 时：agent 按
+  [`references/core-rules.md`](references/core-rules.md) 的同一套 `git` 命令逐条检查，
+  并以相同方式输出结果、要求确认或阻断提交。
+- 两种模式下，若命中敏感指示，会输出触发文件路径、命中片段，并给出“请先检查这些文件”的建议。
+
 ## 什么时候用 / 不用
 
 建议使用：
@@ -107,32 +141,34 @@ Commit command:
 
 ## 快速入口
 
-1. Agent 流程：加载 skill，按 `references/core-rules.md` 执行。
-2. 校验 CLI：`python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`。
-3. Hook 流程：使用上面的脚本（或 `references/commit-msg-hook-example.md`）。
+1. Agent 流程：加载 skill，按 [`references/core-rules.md`](references/core-rules.md) 执行。
+2. 提交消息校验：`python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`。
+3. 安全门禁校验（6 项）：`python3 scripts/precommit_safety_gate.py`。
+4. 无 Python 回退：执行 [`references/core-rules.md`](references/core-rules.md) 的手工门禁命令。
+5. Hook 流程：使用上面的脚本（或 [`references/commit-msg-hook-example.md`](references/commit-msg-hook-example.md)）。
 
 ## Agent 专项安装文档
 
 只在需要工具接入细节时查看：
 
-- Codex: `references/codex-setup.md`
-- Claude Code: `references/claude-setup.md`
-- Kiro CLI: `references/kiro-setup.md`
-- Kimi CLI: `references/kimi-setup.md`
-- Qwen Code: `references/qwen-setup.md`
-- Gemini CLI: `references/gemini-setup.md`
+- Codex: [`references/codex-setup.md`](references/codex-setup.md)
+- Claude Code: [`references/claude-setup.md`](references/claude-setup.md)
+- Kiro CLI: [`references/kiro-setup.md`](references/kiro-setup.md)
+- Kimi CLI: [`references/kimi-setup.md`](references/kimi-setup.md)
+- Qwen Code: [`references/qwen-setup.md`](references/qwen-setup.md)
+- Gemini CLI: [`references/gemini-setup.md`](references/gemini-setup.md)
 
 ## 核心规则来源
 
 所有入口都委托到一个权威规则文件：
 
-- `references/core-rules.md`
+- [`references/core-rules.md`](references/core-rules.md)
 
 ## 社区与反馈
 
-- Bug / 功能建议：GitHub Issues（`/.github/ISSUE_TEMPLATE/`）
+- Bug / 功能建议：GitHub Issues（[`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/)）
 - 使用讨论 / 方案交流：GitHub Discussions
 
 ## License
 
-Apache-2.0（`LICENSE`）
+[Apache-2.0](LICENSE)
