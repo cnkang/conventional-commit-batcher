@@ -31,7 +31,11 @@ jobs:
 
       - name: Syntax check
         run: |
-          python -m py_compile scripts/validate_conventional_commit.py scripts/test_validate_conventional_commit.py
+          python -m py_compile \
+            scripts/validate_conventional_commit.py \
+            scripts/precommit_safety_gate.py \
+            scripts/test_validate_conventional_commit.py \
+            scripts/test_precommit_safety_gate.py
 
       - name: Ruff lint
         run: python -m ruff check scripts
@@ -40,7 +44,7 @@ jobs:
         run: python -m ruff format --check scripts
 
       - name: Unit tests
-        run: python -m pytest -q scripts/test_validate_conventional_commit.py
+        run: python -m pytest -q scripts/test_validate_conventional_commit.py scripts/test_precommit_safety_gate.py
 
       - name: CLI simulation checks
         shell: bash
@@ -70,6 +74,88 @@ jobs:
             echo "Expected failure for extra blank line after header."
             exit 1
           fi
+
+      - name: Safety gate CLI simulation checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sandbox_repo="$(mktemp -d)"
+          cd "$sandbox_repo"
+
+          git init .
+          git config user.name "CI Bot"
+          git config user.email "ci@example.com"
+
+          mkdir -p scripts
+          cp "$GITHUB_WORKSPACE/scripts/precommit_safety_gate.py" scripts/
+
+          # empty staged set should block
+          rc=0
+          python3 scripts/precommit_safety_gate.py || rc=$?
+          if [ "$rc" -ne 3 ]; then
+            echo "Expected exit 3 for empty staged set, got $rc."
+            exit 1
+          fi
+
+          git checkout -b feature/safety-smoke
+          echo "ok" > safe.txt
+          git add safe.txt
+          python3 scripts/precommit_safety_gate.py
+
+          # protected branch should require confirmation
+          git checkout -B main
+          echo "main update" >> safe.txt
+          git add safe.txt
+          rc=0
+          python3 scripts/precommit_safety_gate.py || rc=$?
+          if [ "$rc" -ne 2 ]; then
+            echo "Expected exit 2 for protected branch, got $rc."
+            exit 1
+          fi
+          python3 scripts/precommit_safety_gate.py --allow-protected-branch
+          git reset
+
+          # sensitive path/content should require confirmation
+          git checkout -B feature/secret-smoke
+          echo "api_key = 'abc'" > .env.local
+          git add .env.local
+          rc=0
+          python3 scripts/precommit_safety_gate.py || rc=$?
+          if [ "$rc" -ne 2 ]; then
+            echo "Expected exit 2 for sensitive/local artifact check, got $rc."
+            exit 1
+          fi
+          python3 scripts/precommit_safety_gate.py --allow-sensitive --allow-local-artifacts
+          git reset
+
+          # conflict markers should block
+          cat > conflict.txt <<'EOF'
+          <<<<<<< HEAD
+          a
+          =======
+          b
+          >>>>>>> topic
+          EOF
+          git add conflict.txt
+          rc=0
+          python3 scripts/precommit_safety_gate.py || rc=$?
+          if [ "$rc" -ne 3 ]; then
+            echo "Expected exit 3 for conflict markers, got $rc."
+            exit 1
+          fi
+          git reset
+
+          # large file should require confirmation
+          dd if=/dev/zero of=big.bin bs=1024 count=4 >/dev/null 2>&1
+          git add big.bin
+          rc=0
+          python3 scripts/precommit_safety_gate.py --max-file-size-kb 1 || rc=$?
+          if [ "$rc" -ne 2 ]; then
+            echo "Expected exit 2 for large file check, got $rc."
+            exit 1
+          fi
+          python3 scripts/precommit_safety_gate.py --max-file-size-kb 1 --allow-large-or-binary
 
   commit-hook-simulation:
     name: Commit hook simulation
