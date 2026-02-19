@@ -7,13 +7,19 @@
 
 [中文文档](README.zh-CN.md)
 
-Split mixed changes into reviewable, revertible, traceable Conventional Commit batches with an agent-first, mandatory plan-first workflow.
+Turn mixed local changes into clean, reviewable Conventional Commit batches.
 
-## What / Why
+## Why Use This Skill
 
-- Plan first, then stage/commit by isolated intent.
-- Keep commit history clean for review, bisect, and rollback.
-- Enforce message quality with validator, tests, CI, and commit-msg hook.
+- Plan-first workflow prevents accidental mixed commits.
+- Clear batch boundaries make review, revert, and `git bisect` safer.
+- Commit messages stay standards-compliant without manual policing.
+
+## Who This Is For
+
+- Developers with a messy working tree before opening a PR.
+- Teams that want cleaner commit history for release/changelog tooling.
+- Agent-driven workflows that need deterministic commit hygiene.
 
 ## 30s Quick Try
 
@@ -27,7 +33,11 @@ npx skills list
 Then ask your agent:
 
 ```text
-I have mixed changes in my working tree. Create a commit plan first, wait for my confirmation, then commit in logical batches.
+I have mixed changes in my working tree.
+1) Inspect git status and diff.
+2) Produce a full Commit Plan with logical batches.
+3) Wait for my confirmation.
+4) After I approve, stage and commit each batch with Conventional Commit messages.
 ```
 
 ### B) Use commit-msg hook only (no agent required)
@@ -54,15 +64,44 @@ HOOK
 chmod +x .git/hooks/commit-msg
 ```
 
+## What You Should Expect
+
+When used correctly, the skill should always output a plan before any commit:
+
+```text
+Commit Plan
+Batch #1: feat(scope): ...
+Intent: ...
+Files/Hunks:
+- ...
+Staging commands:
+- git add ...
+Commit command:
+- git commit -m "feat(scope): ..."
+```
+
+## When To Use / Skip
+
+Use it when:
+
+- one branch contains mixed intents (`feat` + `fix` + `docs` + `style`)
+- you need reviewable commit boundaries before PR
+- you want consistent Conventional Commit history across contributors
+
+Skip it when:
+
+- you only have one tiny, single-intent change
+- commit history hygiene is not relevant for the task
+
 ## Quick Start Paths
 
 1. Agent flow: load this skill and follow `references/core-rules.md`.
-2. Validator CLI: run `python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`.
-3. Hook flow: use the hook script above (or `references/commit-msg-hook-example.md`).
+2. Validator CLI: `python3 scripts/validate_conventional_commit.py "feat(scope): add ..."`.
+3. Hook flow: use the script above (or `references/commit-msg-hook-example.md`).
 
 ## Agent-Specific Setup
 
-Use these docs only when you need tool-specific setup details:
+Use these docs only for tool-specific setup details:
 
 - Codex: `references/codex-setup.md`
 - Claude Code: `references/claude-setup.md`
@@ -71,51 +110,15 @@ Use these docs only when you need tool-specific setup details:
 - Qwen Code: `references/qwen-setup.md`
 - Gemini CLI: `references/gemini-setup.md`
 
-## Core Workflow Contract
+## Core Rule Source
 
-The canonical rules live in one file: `references/core-rules.md`.
+All entrypoints delegate to one canonical rule file:
 
-All loaders route to this file:
-
-- `SKILL.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-- `.claude/agents/conventional-commit-batcher.md`
-- `.claude/commands/commit-batch.md`
-- `.kiro/agents/conventional-commit-batcher.json`
-- `.kiro/prompts/conventional-commit-batcher.md`
-- `.kiro/steering/commit-batching.md`
-- `.agents/skills/conventional-commit-batcher/SKILL.md`
-- `.agents/agents/conventional-commit-batcher.md`
-- `agents/openai.yaml`
-
-## Validation and CI
-
-`/.github/workflows/ci.yml` runs:
-
-- Python syntax check (`py_compile`)
-- Lint checks (`ruff check`)
-- Format checks (`ruff format --check`)
-- Unit tests (`pytest`)
-- CLI simulation checks (valid/invalid messages)
-- End-to-end `commit-msg` hook simulation in a temporary git repository
-
-## Release and Versioning
-
-- `SKILL.md` version is currently `1.0.0`.
-- Create a matching git tag for releases: `v<skill-version>`.
-- Pushing `v*` tags triggers automatic GitHub Release creation via `/.github/workflows/release.yml`.
-
-Example:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+- `references/core-rules.md`
 
 ## Community and Feedback
 
-- Bug reports and feature requests: GitHub Issues (templates included in `/.github/ISSUE_TEMPLATE/`)
+- Bug reports and feature requests: GitHub Issues (`/.github/ISSUE_TEMPLATE/`)
 - Product discussion and usage ideas: GitHub Discussions
 
 ## License

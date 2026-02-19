@@ -7,13 +7,19 @@
 
 [English](README.md)
 
-把混杂改动拆成可审查、可回滚、可追踪的 Conventional Commit 批次，并通过 agent-first、plan-first 工作流强制先计划后执行。
+把混杂改动整理成清晰、可审查、可回滚的 Conventional Commit 批次。
 
-## What / Why
+## 为什么用这个 Skill
 
-- 先产出计划，再按意图分批 `git add` / `git commit`。
-- 历史更干净，评审、回滚、`git bisect` 更高效。
-- 通过校验器、测试、CI、hook 形成可执行的提交规范。
+- 先计划后提交，避免误把不相关改动提交在一起。
+- 批次边界清晰，评审、回滚、`git bisect` 都更安全。
+- 自动约束提交消息，减少人工校验负担。
+
+## 适合谁
+
+- PR 前工作区改动已经混杂的研发同学。
+- 希望提交历史更干净、便于变更追踪的团队。
+- 需要稳定提交流程的 agent 驱动开发场景。
 
 ## 30 秒快速试用
 
@@ -27,7 +33,11 @@ npx skills list
 然后对 agent 说：
 
 ```text
-我现在工作区里有混杂改动。先输出 Commit Plan，等我确认后再按批次提交。
+我现在工作区里有混杂改动。
+1）先检查 git status 和 diff。
+2）先输出完整 Commit Plan，按逻辑拆批次。
+3）等待我确认。
+4）确认后再逐批次 stage 并用 Conventional Commit 提交。
 ```
 
 ### B) 只用 commit-msg hook（不依赖 agent）
@@ -54,6 +64,35 @@ HOOK
 chmod +x .git/hooks/commit-msg
 ```
 
+## 你应该看到什么输出
+
+正确使用时，skill 会先输出计划，再执行提交：
+
+```text
+Commit Plan
+Batch #1: feat(scope): ...
+Intent: ...
+Files/Hunks:
+- ...
+Staging commands:
+- git add ...
+Commit command:
+- git commit -m "feat(scope): ..."
+```
+
+## 什么时候用 / 不用
+
+建议使用：
+
+- 一个分支里混有多种意图（`feat` + `fix` + `docs` + `style`）
+- 需要在 PR 前得到可审查的提交边界
+- 希望团队提交历史一致、可追踪
+
+可以跳过：
+
+- 只有一个很小且单一意图改动
+- 当前任务不依赖提交历史治理
+
 ## 快速入口
 
 1. Agent 流程：加载 skill，按 `references/core-rules.md` 执行。
@@ -62,7 +101,7 @@ chmod +x .git/hooks/commit-msg
 
 ## Agent 专项安装文档
 
-只有在你需要某个工具的接入细节时再看这些文档：
+只在需要工具接入细节时查看：
 
 - Codex: `references/codex-setup.md`
 - Claude Code: `references/claude-setup.md`
@@ -71,51 +110,15 @@ chmod +x .git/hooks/commit-msg
 - Qwen Code: `references/qwen-setup.md`
 - Gemini CLI: `references/gemini-setup.md`
 
-## 核心规则与入口关系
+## 核心规则来源
 
-唯一权威规则文件：`references/core-rules.md`。
+所有入口都委托到一个权威规则文件：
 
-所有入口都路由到这一个规则文件：
-
-- `SKILL.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-- `.claude/agents/conventional-commit-batcher.md`
-- `.claude/commands/commit-batch.md`
-- `.kiro/agents/conventional-commit-batcher.json`
-- `.kiro/prompts/conventional-commit-batcher.md`
-- `.kiro/steering/commit-batching.md`
-- `.agents/skills/conventional-commit-batcher/SKILL.md`
-- `.agents/agents/conventional-commit-batcher.md`
-- `agents/openai.yaml`
-
-## 校验与 CI
-
-`/.github/workflows/ci.yml` 会执行：
-
-- Python 语法检查（`py_compile`）
-- 静态检查（`ruff check`）
-- 格式检查（`ruff format --check`）
-- 单元测试（`pytest`）
-- CLI 模拟（合法/非法提交信息）
-- 临时仓库中的 `commit-msg` hook 端到端模拟
-
-## Release 与版本对齐
-
-- `SKILL.md` 当前版本是 `1.0.0`。
-- 发布时建议打同版本标签：`v<skill-version>`。
-- 推送 `v*` 标签后，会由 `/.github/workflows/release.yml` 自动创建 GitHub Release。
-
-示例：
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+- `references/core-rules.md`
 
 ## 社区与反馈
 
-- Bug / 功能建议：GitHub Issues（已提供 Issue 模板）
+- Bug / 功能建议：GitHub Issues（`/.github/ISSUE_TEMPLATE/`）
 - 使用讨论 / 方案交流：GitHub Discussions
 
 ## License
