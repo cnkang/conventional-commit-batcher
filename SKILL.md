@@ -52,6 +52,7 @@ Commit command:
   confirmation if risky files/hunks are detected.
 - Run the `.gitignore`/local-artifact gate before every commit and require
   explicit user confirmation if suspicious files are present.
+- Run branch/conflict/large-file/empty-stage safety checks before every commit.
 - Never skip commit-time checks with `--no-verify`.
 - If check/hook fails, stop and report concise diagnostics.
 

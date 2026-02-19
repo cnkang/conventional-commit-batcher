@@ -105,6 +105,58 @@ Hard requirement:
 - If a tracked file should become ignored, untrack it first (for example
   `git rm --cached <path>`) and then update `.gitignore`.
 
+## Branch Safety Gate (Required)
+
+Before every commit, verify the current branch is expected for this task.
+
+Required check:
+
+```bash
+git branch --show-current
+```
+
+Hard requirement:
+
+- If current branch is protected or release-oriented (for example `main`,
+  `master`, `release/*`, `hotfix/*`), pause and ask user for explicit
+  confirmation before commit.
+- If user did not intend this branch, stop and switch/create the right branch
+  before staging/committing.
+
+## Conflict Marker Gate (Required)
+
+Before every commit, ensure staged changes contain no merge conflict markers.
+
+Required checks:
+
+```bash
+git diff --cached | rg '^(<<<<<<< |=======|>>>>>>> )'
+git diff --cached --name-only
+```
+
+Hard requirement:
+
+- If any conflict marker appears, stop immediately.
+- Do not commit until conflicts are resolved and markers are removed.
+
+## Large/Binary Artifact Gate (Required)
+
+Before every commit, inspect staged content for unexpected binary or large
+artifacts.
+
+Required checks:
+
+```bash
+git diff --cached --numstat
+git diff --cached --name-only
+```
+
+Hard requirement:
+
+- If unexpected binary files or large artifacts appear, pause and ask user for
+  explicit confirmation before commit.
+- If inclusion is accidental, unstage/remove and update `.gitignore` if needed.
+
 ## Commit Plan Output Contract (Required)
 
 Output this exact structure before any staging/commit:
@@ -135,6 +187,11 @@ Hard gates:
   confirmation for those files/hunks before commit.
 - If local-only/generated files appear in staged candidates, require explicit
   user confirmation before commit.
+- If current branch is protected/release-oriented, require explicit user
+  confirmation before commit.
+- If conflict markers are detected, block commit until resolved.
+- If unexpected binary/large artifacts are detected, require explicit user
+  confirmation before commit.
 
 ## Batching Rules
 
@@ -178,6 +235,9 @@ Reject:
 - mixing mechanical formatting with behavioral code changes in one code commit
 - mixing CI/release pipeline edits with product/runtime behavior changes
 - splitting one cohesive logical change into many tiny file-based commits
+- committing unresolved conflict markers
+- committing on an unintended protected/release branch without confirmation
+- committing unexpected binary/large artifacts without confirmation
 - commit headers that do not match actual changes
 
 ## Stage and Commit Each Batch
@@ -232,6 +292,59 @@ Potentially local-only/generated files detected:
 These may belong in `.gitignore` instead of git history.
 Please confirm whether to commit or exclude them.
 ```
+
+Run branch safety check:
+
+```bash
+git branch --show-current
+```
+
+If branch appears protected/release-oriented, ask user explicitly:
+
+```text
+[Branch Confirmation Required]
+Current branch: <branch>
+This branch looks protected or release-oriented.
+Please confirm commit should proceed on this branch.
+```
+
+Run conflict marker check:
+
+```bash
+git diff --cached | rg '^(<<<<<<< |=======|>>>>>>> )'
+```
+
+If markers are detected, block commit:
+
+```text
+[Commit Blocked: Conflict Markers]
+Unresolved merge conflict markers detected in staged changes.
+Resolve conflicts and remove markers before commit.
+```
+
+Run large/binary artifact checks:
+
+```bash
+git diff --cached --numstat
+```
+
+If unexpected large/binary files are detected, ask user explicitly:
+
+```text
+[Large/Binary File Confirmation Required]
+Potential large or binary files detected:
+- <path>
+
+Please confirm these files are intentional for this commit.
+```
+
+Ensure staged content is not empty:
+
+```bash
+git diff --cached --quiet
+```
+
+If command exits `0`, there is no staged content and commit must not proceed.
 
 Validate message:
 

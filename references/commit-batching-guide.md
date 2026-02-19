@@ -99,6 +99,31 @@ If detected:
 - if ignore coverage is missing, add rule in `.gitignore`
 - prefer separate `chore` commit for `.gitignore` maintenance
 
+## Beginner Safety Checks (Before Each Commit)
+
+Run these checks to avoid common first-time mistakes:
+
+```bash
+git branch --show-current
+git diff --cached | rg '^(<<<<<<< |=======|>>>>>>> )'
+git diff --cached --numstat
+git diff --cached --quiet
+```
+
+Interpretation:
+
+- protected/release branch detected: ask for explicit confirmation first
+- conflict marker match found: block commit and resolve conflicts
+- unexpected large/binary artifact detected: ask for explicit confirmation
+- `git diff --cached --quiet` exits `0`: nothing staged, do not run commit
+
+Common beginner mistakes this prevents:
+
+- committing on `main`/`master` unintentionally
+- committing unresolved merge conflicts
+- committing generated binaries/logs by mistake
+- running `git commit` with an empty staged set
+
 ## Recommended Commit Order
 
 1. Mechanical prep (`refactor`, `chore`, or `style`)

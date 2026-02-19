@@ -14,6 +14,7 @@ Turn mixed local changes into clean, reviewable Conventional Commit batches.
 - Plan-first workflow prevents accidental mixed commits.
 - Clear batch boundaries make review, revert, and `git bisect` safer.
 - Commit messages stay standards-compliant without manual policing.
+- Built-in safety gates catch risky commits before they happen.
 
 ## Who This Is For
 
@@ -79,6 +80,17 @@ Staging commands:
 Commit command:
 - git commit -m "feat(scope): ..."
 ```
+
+## Built-In Safety Gates
+
+The skill includes pre-commit guards for common beginner mistakes:
+
+- secret/sensitive data accidentally staged
+- local or generated files that should stay out of history (`.gitignore` drift)
+- commits on protected/release branches by mistake
+- unresolved merge conflict markers
+- unexpected binary/large artifacts
+- empty staged commit attempts
 
 ## When To Use / Skip
 
