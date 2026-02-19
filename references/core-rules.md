@@ -20,6 +20,14 @@ This file is the single source of truth for commit batching behavior across:
 6. Run commit normally and let commit-time checks execute.
 7. Re-check history and working tree after each batch.
 
+## Batch Decision Rubric (5 Lines)
+
+1. If primary intent differs, split commits.
+2. If acceptance criteria differs, split commits.
+3. If rollback decision differs, split commits.
+4. If release timing differs, split commits.
+5. If all four are the same, keep one cohesive commit.
+
 ## Inspect Repository State
 
 Run:
