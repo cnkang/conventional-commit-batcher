@@ -1,6 +1,6 @@
 ---
 name: conventional-commit-batcher
-description: Plan-first commit batching for mixed diffs using Conventional Commits.
+description: Auto-split mixed changes into logical commit batches with validated Conventional Commit messages
 model: inherit
 ---
 

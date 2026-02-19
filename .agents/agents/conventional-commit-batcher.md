@@ -1,6 +1,6 @@
 ---
 name: conventional-commit-batcher
-description: Plan-first commit batching for mixed diffs using Conventional Commits. MUST BE USED when user asks to split, batch, or clean up git commits.
+description: Auto-split mixed changes into logical commit batches with validated Conventional Commit messages. MUST BE USED when user asks to split, batch, or clean up git commits.
 tools:
   - read_file
   - write_file

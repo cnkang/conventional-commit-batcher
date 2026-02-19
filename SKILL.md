@@ -1,12 +1,22 @@
 ---
 name: conventional-commit-batcher
 version: 1.0.0
-description: Inspect Git working tree changes, split mixed diffs into logically coherent commit batches, and produce validated English Conventional Commit messages with safe staging. Use when an AI coding agent needs to clean up mixed changes, prepare reviewable history before a PR, or perform staged commits without mixing unrelated intents.
+description: Auto-split mixed changes into logical commit batches with validated Conventional Commit messages
 ---
 
 # Conventional Commit Batcher
 
-Use this skill to turn mixed changes into a clean, reviewable commit history.
+Automatically organize mixed Git changes into logical, reviewable commits following Conventional Commit best practices.
+
+## Example prompt
+
+```
+I have mixed changes in my working tree. Help me commit them properly.
+```
+
+## Overview
+
+This skill provides a structured workflow for organizing Git working tree changes into logical commit batches. It ensures proper staging, validated English Conventional Commit messages, and clean history for code reviews and PRs.
 
 ## Single Source of Truth
 
