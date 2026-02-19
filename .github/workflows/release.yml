@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create release from tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag and skill version alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag_version="${GITHUB_REF_NAME#v}"
+          skill_version="$(awk -F': ' '/^version: / {print $2; exit}' SKILL.md)"
+          skill_version="${skill_version%\"}"
+          skill_version="${skill_version#\"}"
+
+          if [ -z "$skill_version" ]; then
+            echo "Failed to read version from SKILL.md"
+            exit 1
+          fi
+
+          if [ "$tag_version" != "$skill_version" ]; then
+            echo "Tag version ($tag_version) does not match SKILL.md version ($skill_version)."
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
