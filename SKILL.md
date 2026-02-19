@@ -6,65 +6,73 @@ description: Auto-split mixed changes into logical commit batches with validated
 
 # Conventional Commit Batcher
 
-Automatically organize mixed Git changes into logical, reviewable commits following Conventional Commit best practices.
+Use this skill to turn a messy working tree into clean, reviewable Conventional Commit history.
 
-## Example prompt
+## Use This Skill When
 
+- changes from different intents are mixed in one branch
+- you want a plan-first commit process before opening a PR
+- you need reliable Conventional Commit messages across team and agents
+
+## Skip This Skill When
+
+- the change is tiny and clearly single-intent
+- you only need one quick commit without batching
+
+## High-Success Prompt
+
+```text
+Inspect my current git changes and split them into logical Conventional Commit batches.
+Output a full Commit Plan first.
+Do not run git add or git commit until I confirm the plan.
+After confirmation, execute each batch one by one.
 ```
-I have mixed changes in my working tree. Help me commit them properly.
+
+## Output Contract (Required)
+
+Before any staging or committing, always output:
+
+```text
+Commit Plan
+Batch #1: <type(scope): subject>
+Intent: <why this batch exists>
+Files/Hunks:
+- <path> (...)
+Staging commands:
+- git add ...
+Commit command:
+- git commit -m "..."
 ```
 
-## Overview
+## Required Behavior
 
-This skill provides a structured workflow for organizing Git working tree changes into logical commit batches. It ensures proper staging, validated English Conventional Commit messages, and clean history for code reviews and PRs.
+- Always load `references/core-rules.md` first.
+- Treat `references/core-rules.md` as the single source of truth.
+- Never skip commit-time checks with `--no-verify`.
+- If check/hook fails, stop and report concise diagnostics.
 
-## Single Source of Truth
+## Entrypoints
 
-- Always load and follow `references/core-rules.md` before any `git add` or `git commit`.
-- Treat `references/core-rules.md` as the only authoritative rule set.
-- Do not duplicate or redefine core workflow rules in other files.
-
-## Cross-Loader Compatibility
-
-- Codex entrypoint: this `SKILL.md`.
-- Codex CLI repository entrypoint: `AGENTS.md`.
-- Claude entrypoints:
-  - `CLAUDE.md` (project-level instructions)
-  - `.claude/agents/conventional-commit-batcher.md`
-  - `.claude/commands/commit-batch.md`
-- Kiro CLI entrypoint:
-  - `.kiro/agents/conventional-commit-batcher.json`
-  - `.kiro/steering/commit-batching.md` (auto-loaded context)
-- Shared Agent Skills entrypoints (Kimi / Qwen / Gemini):
-  - `.agents/skills/conventional-commit-batcher/SKILL.md` (skill)
-  - `.agents/agents/conventional-commit-batcher.md` (subagent)
-- OpenAI entrypoint:
-  - `agents/openai.yaml`
-- All entrypoints delegate to `references/core-rules.md`, so one rule file serves all systems.
-
-## Note on `.agents/` directories
-
-This repository uses `.agents/skills/` + `.agents/agents/` as the shared project-level path for Kimi, Qwen Code, and Gemini CLI. Claude Code and Kiro CLI still require their own native directories.
-
-## Resources
-
-- Canonical workflow and constraints: `references/core-rules.md`
-- Codex CLI repo loader: `AGENTS.md`
-- Claude project instructions: `CLAUDE.md`
-- Claude loaders: `.claude/agents/conventional-commit-batcher.md`, `.claude/commands/commit-batch.md`
-- Kiro loader: `.kiro/agents/conventional-commit-batcher.json`
-- Kiro steering: `.kiro/steering/commit-batching.md`
+- Codex skill: `SKILL.md`
+- Codex repo loader: `AGENTS.md`
+- Claude: `CLAUDE.md`, `.claude/agents/conventional-commit-batcher.md`, `.claude/commands/commit-batch.md`
+- Kiro: `.kiro/agents/conventional-commit-batcher.json`, `.kiro/steering/commit-batching.md`
 - Shared skill (Kimi / Qwen / Gemini): `.agents/skills/conventional-commit-batcher/SKILL.md`
 - Shared subagent (Qwen / Gemini): `.agents/agents/conventional-commit-batcher.md`
-- OpenAI loader: `agents/openai.yaml`
-- Commit splitting examples: `references/plan-examples.md`
-- Additional guidance: `references/commit-batching-guide.md`
+- OpenAI: `agents/openai.yaml`
+
+## References
+
+- Canonical rules: `references/core-rules.md`
+- Commit plan examples: `references/plan-examples.md`
+- Commit batching guidance: `references/commit-batching-guide.md`
 - commit-msg hook example: `references/commit-msg-hook-example.md`
-- Codex setup notes: `references/codex-setup.md`
-- Claude setup notes: `references/claude-setup.md`
-- Kiro setup notes: `references/kiro-setup.md`
-- Qwen Code setup notes: `references/qwen-setup.md`
-- Gemini CLI setup notes: `references/gemini-setup.md`
-- Kimi CLI setup notes: `references/kimi-setup.md`
-- Validator: `scripts/validate_conventional_commit.py`
+- Agent setup docs:
+  - `references/codex-setup.md`
+  - `references/claude-setup.md`
+  - `references/kiro-setup.md`
+  - `references/kimi-setup.md`
+  - `references/qwen-setup.md`
+  - `references/gemini-setup.md`
+- Validator script: `scripts/validate_conventional_commit.py`
 - Validator tests: `scripts/test_validate_conventional_commit.py`
