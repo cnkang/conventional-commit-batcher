@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-and-cli:
+    name: Unit + CLI checks (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependency
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Syntax check
+        run: |
+          python -m py_compile scripts/validate_conventional_commit.py scripts/test_validate_conventional_commit.py
+
+      - name: Unit tests
+        run: python -m pytest -q scripts/test_validate_conventional_commit.py
+
+      - name: CLI simulation checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python scripts/validate_conventional_commit.py "feat(api): add endpoint"
+          python scripts/validate_conventional_commit.py "fix(test): stop breaking flaky suites"
+          python scripts/validate_conventional_commit.py $'feat(api): remove v1 endpoint\n\nBREAKING CHANGE: /v1 removed'
+
+          if python scripts/validate_conventional_commit.py "feat(api): add endpoint."; then
+            echo "Expected failure for trailing period subject."
+            exit 1
+          fi
+
+          if python scripts/validate_conventional_commit.py " feat(api): add endpoint"; then
+            echo "Expected failure for header leading space."
+            exit 1
+          fi
+
+          if python scripts/validate_conventional_commit.py "feat(api): breaking change removal"; then
+            echo "Expected failure for explicit breaking-change mention without marker."
+            exit 1
+          fi
+
+          if python scripts/validate_conventional_commit.py $'feat(api): add endpoint\n\n\nBody'; then
+            echo "Expected failure for extra blank line after header."
+            exit 1
+          fi
+
+  commit-hook-simulation:
+    name: Commit hook simulation
+    runs-on: ubuntu-latest
+    needs: unit-and-cli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Simulate commit-msg hook behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sandbox_repo="$(mktemp -d)"
+          cd "$sandbox_repo"
+
+          git init .
+          git config user.name "CI Bot"
+          git config user.email "ci@example.com"
+
+          mkdir -p scripts
+          cp "$GITHUB_WORKSPACE/scripts/validate_conventional_commit.py" scripts/
+
+          cat > .git/hooks/commit-msg <<'HOOK'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          MSG_FILE="$1"
+          SCRIPT_PATH="scripts/validate_conventional_commit.py"
+
+          if [ ! -f "$SCRIPT_PATH" ]; then
+            echo "[commit-msg] validator not found: $SCRIPT_PATH"
+            exit 1
+          fi
+
+          python3 "$SCRIPT_PATH" \
+            --file "$MSG_FILE" \
+            --max-subject-length 72 \
+            --max-header-length 100
+          HOOK
+
+          chmod +x .git/hooks/commit-msg
+
+          echo "ok" > good.txt
+          git add good.txt
+          git commit -m "feat(test): add hook smoke test"
+
+          echo "bad" > bad.txt
+          git add bad.txt
+          if git commit -m "feat(test): add bad subject."; then
+            echo "Expected commit-msg hook to reject invalid message."
+            exit 1
+          fi

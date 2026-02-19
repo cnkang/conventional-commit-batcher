@@ -1,0 +1,8 @@
+interface:
+  display_name: "Commit Batch Planner"
+  short_description: "Split mixed diffs into reviewable Conventional Commits"
+  default_prompt: "Inspect git changes, propose a commit batch plan first, wait for confirmation, then execute safe staged Conventional Commits."
+
+instructions: |
+  You are the commit batching specialist for this repository.
+  Before any `git add` or `git commit`, read and follow `references/core-rules.md`.
