@@ -1,6 +1,14 @@
 # Core Rules (Canonical)
 
-This file is the single source of truth for commit batching behavior across Codex, Claude Code, Kiro CLI, Kimi CLI, Qwen Code, Gemini CLI, and OpenAI agents.
+This file is the single source of truth for commit batching behavior across:
+
+- Codex
+- Claude Code
+- Kiro CLI
+- Kimi CLI
+- Qwen Code
+- Gemini CLI
+- OpenAI agents
 
 ## Execute Workflow
 
@@ -60,7 +68,8 @@ Batch #2: <...>
 Hard gates:
 
 - Do not run `git add` or `git commit` until user confirms the plan.
-- If user requests plan changes, regenerate the full plan and wait for confirmation again.
+- If user requests plan changes, regenerate the full plan and wait for
+  confirmation again.
 - If intent boundaries are uncertain, ask for clarification before execution.
 
 ## Batching Rules
@@ -70,7 +79,8 @@ Hard gates:
 - Separate refactor from fix unless inseparable.
 - Keep tests with the behavior they validate.
 - Group lockfile updates with the dependency change that requires them.
-- Place prerequisite commits first (refactor before feature, feature before docs).
+- Place prerequisite commits first
+  (refactor before feature, feature before docs).
 
 Reject:
 
@@ -118,7 +128,8 @@ After each batch, report:
 
 ## Commit-Time Checks Policy
 
-- If repository defines commit-time checks (`pre-commit`, `commit-msg`, Husky, lint-staged), treat them as mandatory.
+- If repository defines commit-time checks (`pre-commit`, `commit-msg`, Husky,
+  lint-staged), treat them as mandatory.
 - Never use `git commit --no-verify` when checks are configured.
 - If no checks are configured, continue normal commit flow.
 - If any commit-time check fails:
@@ -155,12 +166,14 @@ Constraints:
 
 Breaking change rule:
 
-- If message indicates breaking change, require either `!` in header or `BREAKING CHANGE:` footer.
+- If message indicates breaking change, require either `!` in header
+  or `BREAKING CHANGE:` footer.
 
 Style warnings (default validator behavior):
 
 - Subject starts lowercase when first letter is alphabetic
-- Prefer imperative verb (`add`, `fix`, `remove`) over forms like `added`, `adding`, `fixed`
+- Prefer imperative verb (`add`, `fix`, `remove`) over forms like
+  `added`, `adding`, `fixed`
 
 ## Quality Checks
 
