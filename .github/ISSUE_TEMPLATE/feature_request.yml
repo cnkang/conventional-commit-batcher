@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a workflow, validator, or docs improvement.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share the use case first, then describe the desired change.
+  - type: input
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What hurts in your current commit workflow?
+      placeholder: It is hard to split mixed changes consistently across teams.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe desired behavior and acceptance criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

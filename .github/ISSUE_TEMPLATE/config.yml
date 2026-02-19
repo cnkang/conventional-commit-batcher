@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/cnkang/conventional-commit-batcher/discussions
+    about: Ask usage questions, share workflows, and discuss roadmap ideas.
