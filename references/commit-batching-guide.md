@@ -9,6 +9,29 @@ Use a new batch when any of these changes differ:
 - audience (code change vs documentation)
 - deployment impact (runtime code vs CI/tooling)
 
+## Same File Type, Different Intent
+
+Do not merge changes into one commit just because they are all `.md` or all
+source code files.
+
+Split into separate commits when one of these differs:
+
+- rule contract (for example public README guidance vs skill/agent behavior contract)
+- acceptance criteria (for example user-facing clarity vs strict execution behavior)
+- target audience (for example end users vs maintainers/agents)
+
+Quick check:
+
+- if each part would have a different commit subject, split it
+- if each part could be reverted independently, split it
+
+Common wrong merges to avoid:
+
+- public README copy updates + `SKILL.md` behavior contract updates
+- runtime bug fix + CI workflow pipeline edits
+- pure formatting/refactor sweep + behavior change in same touched files
+- dependency/changelog docs update + unrelated feature docs update
+
 ## Recommended Commit Order
 
 1. Mechanical prep (`refactor`, `chore`, or `style`)

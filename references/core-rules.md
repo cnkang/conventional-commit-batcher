@@ -75,6 +75,17 @@ Hard gates:
 ## Batching Rules
 
 - Keep one commit for one purpose.
+- File type alone is not a batch boundary signal.
+- Even when files are all docs or all code, split batches if their intent,
+  audience, or rule contract differs.
+- If two changes are governed by different rules or acceptance criteria,
+  they must be separate commits.
+- Split by rollback unit: if one part may be reverted without reverting the
+  other, they must not share one commit.
+- Split by validation path: if changes rely on different checks
+  (for example runtime tests vs docs/lint/hook rules), separate commits.
+- Split by release timing: if one part can ship now and another should wait,
+  separate commits.
 - Separate formatting-only edits from behavior changes.
 - Separate refactor from fix unless inseparable.
 - Keep tests with the behavior they validate.
@@ -82,10 +93,23 @@ Hard gates:
 - Place prerequisite commits first
   (refactor before feature, feature before docs).
 
+Before finalizing each batch, verify all answers are "yes":
+
+- Same primary intent?
+- Same acceptance criteria?
+- Same rollback need?
+- Same release timing?
+
+If any answer is "no", split into different commits.
+
 Reject:
 
 - one large mixed commit
 - unrelated files in same commit without shared purpose
+- bundling different rule contracts into one commit just because file type matches
+- mixing user-facing docs with agent/skill contract updates in one docs commit
+- mixing mechanical formatting with behavioral code changes in one code commit
+- mixing CI/release pipeline edits with product/runtime behavior changes
 - commit headers that do not match actual changes
 
 ## Stage and Commit Each Batch
