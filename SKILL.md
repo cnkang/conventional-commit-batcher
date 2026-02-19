@@ -48,8 +48,13 @@ Commit command:
 
 - Always load `references/core-rules.md` first.
 - Treat `references/core-rules.md` as the single source of truth.
+- Run `python3 scripts/precommit_safety_gate.py` before every commit attempt
+  when Python is available; otherwise run the equivalent manual gate checks
+  from `references/core-rules.md`.
 - Run the sensitive-data gate before every commit and require explicit user
   confirmation if risky files/hunks are detected.
+- When any gate reports risk, include triggered file paths and brief evidence
+  in user-facing output, plus a concrete "please review" suggestion.
 - Run the `.gitignore`/local-artifact gate before every commit and require
   explicit user confirmation if suspicious files are present.
 - Run branch/conflict/large-file/empty-stage safety checks before every commit.
@@ -80,4 +85,6 @@ Commit command:
   - `references/qwen-setup.md`
   - `references/gemini-setup.md`
 - Validator script: `scripts/validate_conventional_commit.py`
+- Safety gate script: `scripts/precommit_safety_gate.py`
 - Validator tests: `scripts/test_validate_conventional_commit.py`
+- Safety gate tests: `scripts/test_precommit_safety_gate.py`

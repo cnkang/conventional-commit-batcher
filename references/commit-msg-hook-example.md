@@ -37,3 +37,14 @@ python3 scripts/validate_conventional_commit.py \
   --imperative-mode error \
   --strict-scope
 ```
+
+Optional `pre-commit` safety gate hook (covers sensitive/local-artefact/branch/conflict/large/empty checks):
+
+`.git/hooks/pre-commit`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 scripts/precommit_safety_gate.py
+```

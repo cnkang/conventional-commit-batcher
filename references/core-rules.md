@@ -53,6 +53,41 @@ Classify each changed file by intent:
 - tooling or CI (`build`, `ci`, `chore`)
 - formatting-only (`style`)
 
+## Safety Gate Execution Mode (Required)
+
+Use one of these two equivalent ways before every commit:
+
+1. Preferred (deterministic, testable):
+
+```bash
+python3 scripts/precommit_safety_gate.py
+```
+
+2. Fallback (when Python is unavailable):
+
+- run the manual gate commands in this file
+- apply the same decision policy (`confirm` vs `block`)
+- do not skip any gate
+
+Why keep the script:
+
+- it turns rules into deterministic checks
+- it supports repeatable regression tests
+- it can be reused in git hooks and CI pipelines
+
+Script exit code contract:
+
+- `0`: pass
+- `2`: explicit user confirmation required (rerun with matching `--allow-*`)
+- `3`: blocked (must fix before commit)
+
+Finding report contract (required for both script and manual fallback):
+
+- always state which gate triggered
+- always list exact files that triggered the finding
+- include short evidence (matched line snippet or hunk summary)
+- include a concrete suggestion (review/remove/redact/confirm)
+
 ## Sensitive Data Gate (Required)
 
 Before every commit attempt, inspect staged file names and staged diff for
@@ -78,6 +113,8 @@ Hard requirement:
   user for explicit confirmation before commit.
 - Do not proceed with `git commit` until user confirms those files/hunks are
   intentional.
+- In confirmation requests, include the triggered file list and at least one
+  matched snippet per file when available.
 - If user says accidental inclusion, unstage/remove the risky parts and update
   the plan before continuing.
 
@@ -180,6 +217,7 @@ Batch #2: <...>
 Hard gates:
 
 - Do not run `git add` or `git commit` until user confirms the plan.
+- Before each commit, run safety gates via script (preferred) or manual fallback.
 - If user requests plan changes, regenerate the full plan and wait for
   confirmation again.
 - If intent boundaries are uncertain, ask for clarification before execution.
@@ -257,11 +295,38 @@ git diff --cached --stat
 git diff --cached
 ```
 
+Run safety gate (preferred):
+
+```bash
+python3 scripts/precommit_safety_gate.py
+```
+
+If exit code is `2`, ask for explicit confirmation and rerun with only the
+required flags:
+
+```bash
+python3 scripts/precommit_safety_gate.py \
+  --allow-sensitive \
+  --allow-local-artifacts \
+  --allow-protected-branch \
+  --allow-large-or-binary
+```
+
+If Python is unavailable, run the manual checks below instead and keep the same
+`confirm` / `block` behavior.
+
 Run sensitive data checks on staged changes:
 
 ```bash
 git diff --cached --name-only
 git diff --cached
+```
+
+For manual fallback without Python, produce file-level evidence:
+
+```bash
+git diff --cached --name-only | rg -i '(^|/)(\\.env(\\..*)?|id_rsa|id_dsa|id_ed25519)|\\.(pem|key|p12|jks)$|secret|credential|token|password'
+git diff --cached --no-color | rg -n -i 'BEGIN .*PRIVATE KEY|api[_-]?key|access[_-]?token|secret[_-]?key|client[_-]?secret|password\\s*[:=]'
 ```
 
 If risk indicators are detected, pause and ask user explicitly:
@@ -270,6 +335,12 @@ If risk indicators are detected, pause and ask user explicitly:
 [Sensitive Data Confirmation Required]
 Potentially sensitive files/hunks detected in this batch:
 - <path-or-hunk-summary>
+
+Please review these files first:
+- <path>
+
+Matched indicator snippets:
+- <path>: <snippet>
 
 Please confirm these are intentional and safe to commit.
 Reply with explicit confirmation before I continue.

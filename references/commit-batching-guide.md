@@ -51,7 +51,29 @@ Common over-splitting to avoid:
 
 ## Sensitive Data Pre-Commit Check
 
-Before each commit, run a quick risk scan on staged changes.
+Before each commit, run safety gates with the script (preferred):
+
+```bash
+python3 scripts/precommit_safety_gate.py
+```
+
+If Python is unavailable, run the manual checks below and apply the same
+decision policy (`confirm` for risky cases, `block` for hard failures).
+
+Script exit codes:
+
+- `0`: pass
+- `2`: explicit user confirmation required
+- `3`: blocked, fix before commit
+
+When a sensitive finding appears (script or manual fallback), report to user with:
+
+- gate name (`Sensitive Data`)
+- triggered files (exact paths)
+- matched snippet examples
+- concrete suggestion to review/remove/redact or explicitly confirm
+
+Manual sensitive-data fallback checks:
 
 Suggested checks:
 
@@ -63,9 +85,23 @@ git diff --cached | rg -i 'BEGIN .*PRIVATE KEY|api[_-]?key|access[_-]?token|secr
 If any match appears:
 
 - stop commit execution
-- show matched file/hunk context briefly
+- show matched file/hunk context briefly (with exact file paths)
 - ask user for explicit confirmation that inclusion is intentional
 - continue only after explicit confirmation
+
+Recommended confirmation prompt:
+
+```text
+[Sensitive Data Confirmation Required]
+Triggered files:
+- <path>
+
+Matched indicators:
+- <path>: <snippet>
+
+Please review these files. If this is accidental, I will unstage/redact first.
+If intentional (for tests/docs/rules), reply with explicit confirmation.
+```
 
 If user says it was accidental:
 
@@ -73,7 +109,7 @@ If user says it was accidental:
 - update Commit Plan and staging commands
 - re-run the checks before commit
 
-## `.gitignore` and Local Artifact Check
+## `.gitignore` and Local Artifact Check (Manual Fallback)
 
 Before committing, verify local-only/generated files are not accidentally staged.
 
@@ -99,7 +135,7 @@ If detected:
 - if ignore coverage is missing, add rule in `.gitignore`
 - prefer separate `chore` commit for `.gitignore` maintenance
 
-## Beginner Safety Checks (Before Each Commit)
+## Beginner Safety Checks (Before Each Commit, Manual Fallback)
 
 Run these checks to avoid common first-time mistakes:
 
