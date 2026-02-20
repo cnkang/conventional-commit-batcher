@@ -149,10 +149,11 @@ python3 scripts/precommit_safety_gate.py
 
 ## Commit 消息语言策略
 
-- commit 消息自由文本默认使用英语。
-- 若用户明确要求其他语言，subject/body/footer 的自由文本可使用用户指定语言。
+- commit 消息文本（subject/body/footer）默认使用英语。
+- 若用户明确要求其他语言，subject/body/footer 的文本可使用用户指定语言。
 - Conventional Commit 语法标记保持标准且不翻译：`type`、可选 `scope`、`!`、`BREAKING CHANGE:`。
 - 以 [`references/core-rules.md`](references/core-rules.md) 为唯一权威规则来源。
+- 本节为非权威摘要；`references/core-rules.md` 才是唯一事实来源。
 
 ## Commit 正文最佳实践
 
