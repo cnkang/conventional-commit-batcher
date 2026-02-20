@@ -150,6 +150,20 @@ Skip it when:
 4. No-Python fallback: run manual gate commands in [`references/core-rules.md`](references/core-rules.md).
 5. Hook flow: use the script above (or [`references/commit-msg-hook-example.md`](references/commit-msg-hook-example.md)).
 
+## Commit Message Language Policy
+
+- Default language is English for commit message free text.
+- If a user explicitly asks for another language, free text in subject/body/footer may use that language.
+- Conventional Commit syntax tokens stay standard and untranslated: `type`, optional `scope`, `!`, and `BREAKING CHANGE:`.
+- Canonical enforcement lives in [`references/core-rules.md`](references/core-rules.md).
+
+## Commit Body Best Practices
+
+- Keep body optional: add it when the header is not enough.
+- Prefer brief, high-signal context (what changed and why it matters).
+- Avoid verbose/noisy text that does not help reviewers.
+- For tiny or obvious changes, an empty body is acceptable.
+
 ## Agent-Specific Setup
 
 Use these docs only for tool-specific setup details:

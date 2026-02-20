@@ -147,6 +147,20 @@ python3 scripts/precommit_safety_gate.py
 4. 无 Python 回退：执行 [`references/core-rules.md`](references/core-rules.md) 的手工门禁命令。
 5. Hook 流程：使用上面的脚本（或 [`references/commit-msg-hook-example.md`](references/commit-msg-hook-example.md)）。
 
+## Commit 消息语言策略
+
+- commit 消息自由文本默认使用英语。
+- 若用户明确要求其他语言，subject/body/footer 的自由文本可使用用户指定语言。
+- Conventional Commit 语法标记保持标准且不翻译：`type`、可选 `scope`、`!`、`BREAKING CHANGE:`。
+- 以 [`references/core-rules.md`](references/core-rules.md) 为唯一权威规则来源。
+
+## Commit 正文最佳实践
+
+- 正文可选：当标题不足以说明上下文时再填写。
+- 保持简洁高信息密度：说明关键“改了什么、为什么改/影响什么”。
+- 避免堆砌无意义文字，确保人类读者快速理解。
+- 对于非常简单、标题已足够说明的改动，正文可留空。
+
 ## Agent 专项安装文档
 
 只在需要工具接入细节时查看：

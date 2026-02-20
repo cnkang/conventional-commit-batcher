@@ -470,11 +470,23 @@ Constraints:
 - Header format: `<type>(<scope>)!: <subject>`
 - Scope optional; validator supports `_` by default
 - `!` optional and used for breaking changes
-- Subject in English
+- Commit message language defaults to English (subject, body, and footer free
+  text).
+- If the user explicitly requests another language, message free text may use
+  that language.
+- Do not translate Conventional Commit keywords/tokens (`type`, optional
+  `scope`, `!` marker, and `BREAKING CHANGE:` footer token). Keep prefixes like
+  `docs`, `feat`, `fix` in standard form.
 - No trailing period in subject
 - Subject max length default `72`
 - Header max length default `100`
 - If body/footer exists, keep one blank line after header
+- Body is optional; add it only when header alone cannot explain context.
+- When body is needed, keep it concise and human-readable; focus on key why/what
+  or impact (avoid restating header).
+- For very small/simple changes, body may be empty.
+- If footer is used, keep tokens standard (for example `BREAKING CHANGE:`) and
+  keep footer text concise.
 
 Breaking change rule:
 
