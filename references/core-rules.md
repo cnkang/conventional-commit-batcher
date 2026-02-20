@@ -470,10 +470,10 @@ Constraints:
 - Header format: `<type>(<scope>)!: <subject>`
 - Scope optional; validator supports `_` by default
 - `!` optional and used for breaking changes
-- Commit message language defaults to English (subject, body, and footer free
-  text).
-- If the user explicitly requests another language, message free text may use
-  that language.
+- Commit message language defaults to English (text in subject, body, and
+  footer).
+- If the user explicitly requests another language, message text in
+  subject/body/footer may use that language.
 - Do not translate Conventional Commit keywords/tokens (`type`, optional
   `scope`, `!` marker, and `BREAKING CHANGE:` footer token). Keep prefixes like
   `docs`, `feat`, `fix` in standard form.

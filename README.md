@@ -152,10 +152,11 @@ Skip it when:
 
 ## Commit Message Language Policy
 
-- Default language is English for commit message free text.
-- If a user explicitly asks for another language, free text in subject/body/footer may use that language.
+- Default language is English for commit message text (subject/body/footer).
+- If a user explicitly asks for another language, text in subject/body/footer may use that language.
 - Conventional Commit syntax tokens stay standard and untranslated: `type`, optional `scope`, `!`, and `BREAKING CHANGE:`.
 - Canonical enforcement lives in [`references/core-rules.md`](references/core-rules.md).
+- This section is a non-authoritative summary; `references/core-rules.md` is the single source of truth.
 
 ## Commit Body Best Practices
 
