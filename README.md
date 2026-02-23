@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/cnkang/conventional-commit-batcher/actions/workflows/ci.yml/badge.svg)](https://github.com/cnkang/conventional-commit-batcher/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/cnkang/conventional-commit-batcher)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-10b981)](https://github.com/cnkang/conventional-commit-batcher/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-10b981)](https://github.com/cnkang/conventional-commit-batcher/releases)
 [![Agent Skill](https://img.shields.io/badge/agent--skill-conventional--commit--batcher-2563eb)](https://skills.sh)
 
 [中文文档](README.zh-CN.md)
@@ -10,6 +10,25 @@
 ![conventional-commit-batcher social preview](assets/social-preview.png)
 
 Turn mixed local changes into clean, reviewable Conventional Commit batches.
+
+## Automatic Commit Interception
+
+Once installed, this skill automatically intercepts ALL commit-related
+operations — not just explicit "batch my commits" requests. When the agent
+detects any intent to `git add`, `git commit`, or `git push`, it MUST follow
+the plan-first workflow before executing any git command.
+
+This means:
+- Asking the agent to "commit my changes" triggers the full workflow.
+- The agent splits changes into logical batches, runs safety gates, and commits
+  directly — no confirmation needed by default.
+- To review the plan before execution, explicitly ask the agent to show the
+  plan first.
+- Safety gates (sensitive data, conflict markers, protected branch, etc.) still
+  require user confirmation when triggered, regardless of execution mode.
+
+This behavior is enforced across all supported platforms (Codex, Claude Code,
+Kiro, Kimi, Qwen, Gemini, OpenAI) through their respective entrypoint files.
 
 ## Why Use This Skill
 
@@ -36,11 +55,15 @@ npx skills list
 Then ask your agent:
 
 ```text
+I have mixed changes in my working tree. Commit them with proper Conventional Commit messages.
+```
+
+The agent will automatically inspect, split, and commit. To review the plan
+before execution instead:
+
+```text
 I have mixed changes in my working tree.
-1) Inspect git status and diff.
-2) Produce a full Commit Plan with logical batches.
-3) Wait for my confirmation.
-4) After I approve, stage and commit each batch with Conventional Commit messages.
+Show me the commit plan first before executing.
 ```
 
 ### B) Use git hooks (no agent required)
@@ -78,7 +101,18 @@ chmod +x .git/hooks/pre-commit
 
 ## What You Should Expect
 
-When used correctly, the skill should always output a plan before any commit:
+By default, the skill auto-executes: it inspects changes, splits into logical
+batches, runs safety gates, and commits directly. After each batch, it reports
+what was committed.
+
+If you want to review the plan before execution, explicitly ask:
+
+```text
+Show me the commit plan first before executing.
+```
+
+In plan-first mode, the skill outputs the full plan and waits for your
+confirmation:
 
 ```text
 Commit Plan
@@ -133,6 +167,7 @@ the same decisions.
 
 Use it when:
 
+- any commit operation is performed through an agent (automatic interception)
 - one branch contains mixed intents (`feat` + `fix` + `docs` + `style`)
 - you need reviewable commit boundaries before PR
 - you want consistent Conventional Commit history across contributors
@@ -141,6 +176,10 @@ Skip it when:
 
 - you only have one tiny, single-intent change
 - commit history hygiene is not relevant for the task
+
+Note: even when the skill could be skipped, if it is installed, the agent will
+still produce a Commit Plan and run safety gates. The plan may contain only a
+single batch, which is fine.
 
 ## Quick Start Paths
 

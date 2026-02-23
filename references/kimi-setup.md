@@ -8,6 +8,14 @@ The skill always points execution to the canonical rules file:
 
 - `references/core-rules.md`
 
+## Automatic commit interception
+
+Once the skill is discovered, it intercepts ALL commit-related operations
+automatically. The agent cannot run `git add`, `git commit`, or `git push`
+without first producing a Commit Plan and running safety gates. This applies
+whether the user explicitly asks for batching or simply says "commit my
+changes".
+
 ## Use in this repository
 
 Open this repository in Kimi CLI. The skill is discovered automatically.

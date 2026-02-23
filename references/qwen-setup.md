@@ -9,6 +9,14 @@ Both point execution to the canonical rules file:
 
 - `references/core-rules.md`
 
+## Automatic commit interception
+
+Once discovered, the skill and subagent intercept ALL commit-related operations
+automatically. The agent cannot run `git add`, `git commit`, or `git push`
+without first producing a Commit Plan and running safety gates. This applies
+whether the user explicitly asks for batching or simply says "commit my
+changes".
+
 ## Use in this repository
 
 Open this repository in Qwen Code. The skill and subagent are discovered automatically.

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/cnkang/conventional-commit-batcher/actions/workflows/ci.yml/badge.svg)](https://github.com/cnkang/conventional-commit-batcher/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/cnkang/conventional-commit-batcher)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-10b981)](https://github.com/cnkang/conventional-commit-batcher/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-10b981)](https://github.com/cnkang/conventional-commit-batcher/releases)
 [![Agent Skill](https://img.shields.io/badge/agent--skill-conventional--commit--batcher-2563eb)](https://skills.sh)
 
 [English](README.md)
@@ -10,6 +10,21 @@
 ![conventional-commit-batcher 社交预览图](assets/social-preview.png)
 
 把混杂改动整理成清晰、可审查、可回滚的 Conventional Commit 批次。
+
+## 自动拦截所有提交操作
+
+安装后，本 skill 会自动拦截所有与提交相关的操作，而不仅仅是用户明确要求"拆分提交"时才生效。
+当 agent 检测到任何 `git add`、`git commit` 或 `git push` 意图时，必须先走计划优先的工作流，
+再执行任何 git 命令。
+
+具体表现：
+- 对 agent 说"帮我提交一下"就会触发完整流程。
+- agent 会自动拆分批次、运行安全门禁、直接提交，默认不需要用户确认。
+- 如果想在执行前先看计划，需要明确告诉 agent"先给我看提交计划"。
+- 安全门禁（敏感数据、冲突标记、受保护分支等）触发时仍然需要用户确认，不受执行模式影响。
+
+该行为通过各平台的入口文件在所有支持的平台（Codex、Claude Code、Kiro、Kimi、Qwen、
+Gemini、OpenAI）上统一强制执行。
 
 ## 为什么用这个 Skill
 
@@ -36,11 +51,14 @@ npx skills list
 然后对 agent 说：
 
 ```text
+我现在工作区里有混杂改动，帮我用 Conventional Commit 提交。
+```
+
+agent 会自动检查、拆分、提交。如果想先看计划再执行：
+
+```text
 我现在工作区里有混杂改动。
-1）先检查 git status 和 diff。
-2）先输出完整 Commit Plan，按逻辑拆批次。
-3）等待我确认。
-4）确认后再逐批次 stage 并用 Conventional Commit 提交。
+先给我看提交计划，确认后再执行。
 ```
 
 ### B) 只用 git hook（不依赖 agent）
@@ -78,7 +96,16 @@ chmod +x .git/hooks/pre-commit
 
 ## 你应该看到什么输出
 
-正确使用时，skill 会先输出计划，再执行提交：
+默认情况下，skill 会自动执行：检查改动、拆分批次、运行安全门禁、直接提交。
+每个批次提交后会报告提交内容。
+
+如果想在执行前先看计划，明确要求即可：
+
+```text
+先给我看提交计划，确认后再执行。
+```
+
+在计划优先模式下，skill 会输出完整计划并等待确认：
 
 ```text
 Commit Plan
@@ -130,6 +157,7 @@ python3 scripts/precommit_safety_gate.py
 
 建议使用：
 
+- 通过 agent 执行任何提交操作时（自动拦截）
 - 一个分支里混有多种意图（`feat` + `fix` + `docs` + `style`）
 - 需要在 PR 前得到可审查的提交边界
 - 希望团队提交历史一致、可追踪
@@ -138,6 +166,9 @@ python3 scripts/precommit_safety_gate.py
 
 - 只有一个很小且单一意图改动
 - 当前任务不依赖提交历史治理
+
+注意：即使改动很简单可以跳过，只要 skill 已安装，agent 仍会输出 Commit Plan 并运行安全门禁。
+计划可能只包含一个批次，这完全正常。
 
 ## 快速入口
 
