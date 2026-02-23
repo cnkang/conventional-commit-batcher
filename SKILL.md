@@ -1,15 +1,26 @@
 ---
 name: conventional-commit-batcher
-version: 1.0.0
-description: Auto-split mixed changes into logical commit batches with validated Conventional Commit messages
+version: 2.0.0
+description: Auto-split mixed changes into logical commit batches with validated Conventional Commit messages. MUST BE USED for ANY git add, git commit, or git push operation.
 ---
 
 # Conventional Commit Batcher
 
 Use this skill to turn a messy working tree into clean, reviewable Conventional Commit history.
 
+## Commit Interception (MANDATORY)
+
+This skill MUST be activated for ANY commit-related operation, including:
+- user asks to commit, stage, or push changes
+- user asks to "save" or "check in" code
+- any workflow that would result in `git add`, `git commit`, or `git push`
+
+Do NOT run `git add` or `git commit` directly without going through this
+skill's workflow.
+
 ## Use This Skill When
 
+- any commit operation is performed through an agent (automatic interception)
 - changes from different intents are mixed in one branch
 - you want a plan-first commit process before opening a PR
 - you need reliable Conventional Commit messages across team and agents
@@ -19,7 +30,24 @@ Use this skill to turn a messy working tree into clean, reviewable Conventional 
 - the change is tiny and clearly single-intent
 - you only need one quick commit without batching
 
-## High-Success Prompt
+Note: even when the skill could be skipped, if it is installed, the agent will
+still run the workflow and safety gates. The result may be a single batch, which
+is fine.
+
+## Default Behavior: Auto-Execute
+
+By default, the skill inspects changes, splits into logical batches, runs
+safety gates, and commits directly — without waiting for user confirmation.
+
+To see the plan before execution, explicitly ask:
+
+```text
+Show me the commit plan first before executing.
+```
+
+## High-Success Prompt (Plan-First Mode)
+
+Use this prompt only when you want to review the plan before execution:
 
 ```text
 Inspect my current git changes and split them into logical Conventional Commit batches.
@@ -28,9 +56,13 @@ Do not run git add or git commit until I confirm the plan.
 After confirmation, execute each batch one by one.
 ```
 
-## Output Contract (Required)
+## Output Contract
 
-Before any staging or committing, always output:
+In auto-execute mode (default), the agent outputs a brief per-batch summary as
+each batch is committed.
+
+In plan-first mode (user requested), the agent outputs the full plan before
+any staging/commit:
 
 ```text
 Commit Plan

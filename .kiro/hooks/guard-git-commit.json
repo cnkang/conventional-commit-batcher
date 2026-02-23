@@ -1,0 +1,13 @@
+{
+  "name": "Guard Git Commit",
+  "version": "1.0.0",
+  "description": "Intercept git add/commit shell commands and ensure the conventional-commit-batcher skill workflow is followed first.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["shell"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A shell command is about to run. If it involves `git add`, `git commit`, or `git push`, STOP and ensure you have activated the `conventional-commit-batcher` skill and followed its workflow (inspect → split → safety gates → execute). The default mode is auto-execute (no user confirmation needed). Only pause for a Commit Plan if the user explicitly asked to review the plan first. Safety gate confirmations (sensitive data, protected branch, etc.) still require user confirmation."
+  }
+}

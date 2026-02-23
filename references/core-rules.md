@@ -10,15 +10,33 @@ This file is the single source of truth for commit batching behavior across:
 - Gemini CLI
 - OpenAI agents
 
+## Execution Mode
+
+Default mode: **auto-execute**. The agent inspects changes, splits into logical
+batches, runs safety gates, and commits directly without waiting for user
+confirmation.
+
+Plan-first mode: activated only when the user explicitly requests to see the
+plan before execution (e.g., "show me the plan first", "let me review before
+committing"). In this mode, output the Commit Plan and wait for user
+confirmation before staging or committing.
+
+Safety gate confirmations are independent of execution mode. If a safety gate
+requires user confirmation (sensitive data, protected branch, etc.), the agent
+MUST still pause and ask regardless of execution mode.
+
 ## Execute Workflow
 
 1. Inspect current repository state.
-2. Produce a full Commit Plan in the required format.
-3. Wait for explicit user confirmation.
-4. Stage and commit one logical batch at a time.
+2. Classify changes and split into logical batches.
+3. Run safety gates before each batch.
+4. **Auto-execute mode (default):** stage and commit each batch directly.
+   **Plan-first mode (on user request):** output the full Commit Plan, wait
+   for explicit user confirmation, then stage and commit.
 5. Validate every commit message before each commit.
 6. Run commit normally and let commit-time checks execute.
 7. Re-check history and working tree after each batch.
+8. After all batches, output a brief summary of what was committed.
 
 ## Batch Decision Rubric (5 Lines)
 
@@ -194,9 +212,16 @@ Hard requirement:
   explicit confirmation before commit.
 - If inclusion is accidental, unstage/remove and update `.gitignore` if needed.
 
-## Commit Plan Output Contract (Required)
+## Commit Plan Output Contract
 
-Output this exact structure before any staging/commit:
+The Commit Plan format is used in two scenarios:
+1. **Plan-first mode** (user explicitly requested): output the full plan and
+   wait for confirmation before any staging/commit.
+2. **Auto-execute mode** (default): the agent still internally determines the
+   same batch structure, but proceeds to execute directly. Output a brief
+   per-batch summary as each batch is committed.
+
+Full plan format (used in plan-first mode or when user asks to see the plan):
 
 ```text
 Commit Plan
@@ -214,22 +239,15 @@ Batch #2: <...>
 ...
 ```
 
-Hard gates:
+Hard gates (apply to BOTH modes):
 
-- Do not run `git add` or `git commit` until user confirms the plan.
 - Before each commit, run safety gates via script (preferred) or manual fallback.
-- If user requests plan changes, regenerate the full plan and wait for
-  confirmation again.
-- If intent boundaries are uncertain, ask for clarification before execution.
-- If sensitive-file or secret-risk indicators exist, require explicit user
-  confirmation for those files/hunks before commit.
-- If local-only/generated files appear in staged candidates, require explicit
-  user confirmation before commit.
-- If current branch is protected/release-oriented, require explicit user
-  confirmation before commit.
+- If safety gates require user confirmation (sensitive data, protected branch,
+  local artifacts, large/binary files), pause and ask regardless of mode.
 - If conflict markers are detected, block commit until resolved.
-- If unexpected binary/large artifacts are detected, require explicit user
-  confirmation before commit.
+- If user requests plan changes (plan-first mode), regenerate the full plan and
+  wait for confirmation again.
+- If intent boundaries are uncertain, ask for clarification before execution.
 
 ## Batching Rules
 
